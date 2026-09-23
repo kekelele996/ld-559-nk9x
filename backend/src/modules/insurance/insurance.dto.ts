@@ -1,4 +1,4 @@
-import { IsDateString, IsEnum, IsNumber, IsString } from 'class-validator';
+import { ArrayNotEmpty, IsArray, IsDateString, IsEnum, IsNumber, IsString } from 'class-validator';
 import { InsuranceStatus, PolicyType } from '../../constants/enums';
 
 export class CreateInsuranceDto {
@@ -13,3 +13,9 @@ export class CreateInsuranceDto {
 }
 
 export class UpdateInsuranceDto extends CreateInsuranceDto {}
+
+export class CreateClaimDto {
+  @IsString() policyId!: string;
+  @IsString() petId!: string;
+  @IsArray() @ArrayNotEmpty() @IsString({ each: true }) recordIds!: string[];
+}

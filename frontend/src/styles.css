@@ -82,6 +82,14 @@ a {
   font-size: 12px;
 }
 
+.claim-modal-body {
+  width: 100%;
+}
+
+.claim-item {
+  width: 100%;
+}
+
 .login-shell {
   min-height: 100vh;
   display: grid;

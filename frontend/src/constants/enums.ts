@@ -39,6 +39,12 @@ export enum PolicyType {
   PREMIUM = 'PREMIUM',
 }
 
+export enum ClaimStatus {
+  REVIEWING = 'REVIEWING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
@@ -65,6 +71,9 @@ export const enumLabels = {
   [PolicyType.BASIC]: '基础',
   [PolicyType.STANDARD]: '标准',
   [PolicyType.PREMIUM]: '高级',
+  [ClaimStatus.REVIEWING]: '审核中',
+  [ClaimStatus.APPROVED]: '已赔付',
+  [ClaimStatus.REJECTED]: '已拒绝',
   [Gender.MALE]: '雄性',
   [Gender.FEMALE]: '雌性',
 };

@@ -20,12 +20,6 @@ export class InsuranceController {
     return { code: 0, message: 'ok', data: await this.service.create(dto) };
   }
 
-  @Patch(':id/claim')
-  @AuditLog('提交理赔')
-  async claim(@Param('id') id: string) {
-    return { code: 0, message: 'ok', data: await this.service.claim(id) };
-  }
-
   @Patch(':id')
   @AuditLog('续保操作')
   async update(@Param('id') id: string, @Body() dto: UpdateInsuranceDto) {

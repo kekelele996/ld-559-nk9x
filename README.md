@@ -40,7 +40,7 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 | `/pets/:id` | 基本信息、就诊时间线、疫苗日历、保单列表 |
 | `/medical` | 就诊记录表格、处方侧栏、费用柱状图 |
 | `/vaccines` | 疫苗日历、待接种提醒、状态标记 |
-| `/insurance` | 保单卡片、理赔流程、保费/保障分析 |
+| `/insurance` | 保单卡片、勾选就诊记录提交理赔、理赔进度、保费/保障分析 |
 
 ## 核心实体贯穿链路
 
@@ -50,6 +50,7 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 | MedicalRecord | Prisma → `medical.repository.ts` → `medical.service.ts` → `medical.controller.ts` → `medical.routes.ts` | `medicalApi.ts` → `usePets.ts` → `MedicalManagement.tsx` / `CostBarChart.tsx` |
 | VaccineRecord | Prisma → `vaccine.repository.ts` → `vaccine.service.ts` → `vaccine.controller.ts` → `vaccine.routes.ts` | `vaccineApi.ts` → `usePets.ts` → `VaccineManagement.tsx` / `VaccineCalendar.tsx` |
 | InsurancePolicy | Prisma → `insurance.repository.ts` → `insurance.service.ts` → `insurance.controller.ts` → `insurance.routes.ts` | `insuranceApi.ts` → `usePets.ts` → `InsuranceCenter.tsx` / `InsurancePieChart.tsx` |
+| InsuranceClaim | Prisma → `claim.repository.ts` → `claim.service.ts` → `claim.controller.ts` → `insurance.routes.ts` | `insuranceApi.ts` → `useInsurance.ts` → `InsuranceCenter.tsx` / `ClaimSubmitModal.tsx` / `ClaimList.tsx` |
 
 ## 枚举定义与使用位置
 
@@ -59,7 +60,8 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 | PetSpecies | `backend/src/constants/enums.ts`、`pet.dto.ts`、`pet.repository.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`pet.d.ts`、`PetList.tsx`、`PetAvatar.tsx`、`mockData.ts` |
 | VisitType | `backend/src/constants/enums.ts`、`medical.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`medical.d.ts`、`MedicalManagement.tsx`、`mockData.ts` |
 | VaccineStatus | `backend/src/constants/enums.ts`、`vaccine.dto.ts`、`notification.scheduler.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`vaccine.d.ts`、`VaccineManagement.tsx`、`VaccineCalendar.tsx`、`StatusBadge.tsx` |
-| InsuranceStatus | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`notification.scheduler.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`InsurancePieChart.tsx`、`StatusBadge.tsx` |
+| InsuranceStatus | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`notification.scheduler.ts`、`claim.repository.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`ClaimSubmitModal.tsx`、`InsurancePieChart.tsx`、`StatusBadge.tsx` |
+| ClaimStatus | `backend/src/constants/enums.ts`、`claim.repository.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`ClaimList.tsx`、`mockData.ts`、`StatusBadge.tsx` |
 | PolicyType | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`mockData.ts` |
 | Gender | `backend/src/constants/enums.ts`、`pet.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`pet.d.ts`、`PetDetail.tsx`、`mockData.ts` |
 
@@ -78,6 +80,13 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 ## 操作日志
 
 后端 `backend/src/middleware/audit-log.ts` 提供 `@AuditLog('描述')` 装饰器和拦截器，记录创建就诊记录、疫苗接种、投保、理赔、添加宠物等写操作，字段包括请求路径、方法、操作人、请求体摘要、状态码和时间。
+
+## 理赔规则
+
+- 宠物主人在保险中心点击保单的「提交理赔」，只能勾选该保单关联宠物、就诊日期在保障期内且尚未进入任何理赔单的就诊记录（`GET /api/v1/insurance/:id/claimable-records`），按所选记录费用合计生成一笔理赔单（`POST /api/v1/insurance/claims`）。
+- `insurance_claim_items.medical_record_id` 有数据库唯一约束，同一份就诊记录再进入其他理赔单会被拒绝；事务内先对保单行加 `FOR UPDATE` 锁再复查，两人同时提交时只有一笔能成立，后到的请求提示已有理赔，保单费用与保障额度保持不变。
+- 保单未生效、宠物不匹配或就诊日期超出保障期时，接口返回业务错误，页面展示原因并停止提交。
+- 提交成功后保单状态变为「理赔中」，理赔单进度（提交 → 审核 → 赔付）与金额持久化在 `insurance_claims` 表，重新进入保险中心即可看到。
 
 ## 提醒通知
 

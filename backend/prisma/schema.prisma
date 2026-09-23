@@ -48,6 +48,12 @@ enum PolicyType {
   PREMIUM
 }
 
+enum ClaimStatus {
+  REVIEWING
+  APPROVED
+  REJECTED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -113,6 +119,7 @@ model MedicalRecord {
   pet           Pet       @relation(fields: [petId], references: [id])
   vet           User      @relation("VetRecords", fields: [vetId], references: [id])
   clinic        Clinic    @relation(fields: [clinicId], references: [id])
+  claimItem     InsuranceClaimItem?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -133,7 +140,7 @@ model VaccineRecord {
 }
 
 model InsurancePolicy {
-  id        String          @id @default(cuid())
+  id        String           @id @default(cuid())
   petId     String
   provider  String
   planType  PolicyType
@@ -142,9 +149,33 @@ model InsurancePolicy {
   startDate DateTime
   endDate   DateTime
   status    InsuranceStatus
-  pet       Pet             @relation(fields: [petId], references: [id])
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  pet       Pet              @relation(fields: [petId], references: [id])
+  claims    InsuranceClaim[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model InsuranceClaim {
+  id          String               @id @default(cuid())
+  policyId    String
+  petId       String
+  claimNo     String
+  amount      Decimal
+  status      ClaimStatus          @default(REVIEWING)
+  progress    Int                  @default(1)
+  submittedAt DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  policy      InsurancePolicy      @relation(fields: [policyId], references: [id])
+  items       InsuranceClaimItem[]
+}
+
+model InsuranceClaimItem {
+  id              String         @id @default(cuid())
+  claimId         String
+  medicalRecordId String         @unique
+  cost            Decimal
+  claim           InsuranceClaim @relation(fields: [claimId], references: [id])
+  record          MedicalRecord  @relation(fields: [medicalRecordId], references: [id])
 }
 
 model Notification {

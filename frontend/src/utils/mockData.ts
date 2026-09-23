@@ -1,5 +1,5 @@
-import { Gender, InsuranceStatus, PetSpecies, PolicyType, VaccineStatus, VisitType } from '../constants/enums';
-import type { InsurancePolicy } from '../types/insurance';
+import { ClaimStatus, Gender, InsuranceStatus, PetSpecies, PolicyType, VaccineStatus, VisitType } from '../constants/enums';
+import type { InsuranceClaim, InsurancePolicy } from '../types/insurance';
 import type { MedicalRecord } from '../types/medical';
 import type { Pet } from '../types/pet';
 import type { VaccineRecord } from '../types/vaccine';
@@ -61,6 +61,20 @@ export const mockMedical: MedicalRecord[] = [
     attachments: [],
     pet: mockPets[1],
   },
+  {
+    id: 'medical-demo-3',
+    petId: 'pet-demo-1',
+    vetId: 'vet-demo',
+    clinicId: 'clinic-demo',
+    visitDate: '2026-08-20',
+    type: VisitType.ROUTINE,
+    diagnosis: '肠胃不适复查',
+    treatment: '清淡饮食并口服药物一周',
+    prescription: '蒙脱石散 5 日',
+    cost: 456,
+    attachments: [],
+    pet: mockPets[0],
+  },
 ];
 
 export const mockVaccines: VaccineRecord[] = [
@@ -111,5 +125,28 @@ export const mockInsurance: InsurancePolicy[] = [
     endDate: '2026-07-01',
     status: InsuranceStatus.PENDING_RENEWAL,
     pet: mockPets[1],
+  },
+];
+
+export const mockClaims: InsuranceClaim[] = [
+  {
+    id: 'claim-demo-1',
+    policyId: 'policy-demo-1',
+    petId: 'pet-demo-1',
+    claimNo: 'CL-DEMO-001',
+    amount: 328,
+    status: ClaimStatus.REVIEWING,
+    progress: 1,
+    submittedAt: '2026-06-11',
+    items: [
+      {
+        id: 'claim-item-demo-1',
+        claimId: 'claim-demo-1',
+        medicalRecordId: 'medical-demo-1',
+        cost: 328,
+        record: mockMedical[0],
+      },
+    ],
+    policy: mockInsurance[0],
   },
 ];

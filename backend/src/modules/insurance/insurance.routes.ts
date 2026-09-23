@@ -1,6 +1,8 @@
 export const insuranceRoutes = {
   list: 'GET /api/v1/insurance',
   create: 'POST /api/v1/insurance',
-  claim: 'PATCH /api/v1/insurance/:id/claim',
   update: 'PATCH /api/v1/insurance/:id',
+  claims: 'GET /api/v1/insurance/claims',
+  claimableRecords: 'GET /api/v1/insurance/:id/claimable-records',
+  submitClaim: 'POST /api/v1/insurance/claims',
 } as const;

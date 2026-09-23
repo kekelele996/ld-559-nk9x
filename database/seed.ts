@@ -50,6 +50,20 @@ async function main() {
       attachments: [],
     },
   });
+  await prisma.medicalRecord.create({
+    data: {
+      petId: pet.id,
+      vetId: vet.id,
+      clinicId: clinic.id,
+      visitDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 20),
+      type: VisitType.ROUTINE,
+      diagnosis: '肠胃不适复查',
+      treatment: '清淡饮食并口服药物一周',
+      prescription: '蒙脱石散 5 日',
+      cost: 456,
+      attachments: [],
+    },
+  });
   await prisma.vaccineRecord.create({
     data: {
       petId: pet.id,
