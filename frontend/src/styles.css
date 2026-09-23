@@ -59,6 +59,11 @@ a {
   border: 1px solid #dce5df;
 }
 
+.claim-card {
+  margin-bottom: 12px;
+  border: 1px solid #dce5df;
+}
+
 .muted-line {
   margin-top: 8px;
   color: #6f7f7c;

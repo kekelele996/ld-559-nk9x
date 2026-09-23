@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuditLog } from '../../middleware/audit-log';
 import { AuthGuard } from '../auth/auth.guard';
-import { CreateInsuranceDto, UpdateInsuranceDto } from './insurance.dto';
+import { CreateClaimDto, CreateInsuranceDto, UpdateInsuranceDto } from './insurance.dto';
 import { InsuranceService } from './insurance.service';
 
 @Controller('insurance')
@@ -20,10 +20,20 @@ export class InsuranceController {
     return { code: 0, message: 'ok', data: await this.service.create(dto) };
   }
 
-  @Patch(':id/claim')
+  @Get('claims')
+  async claims(@Req() req: any, @Query('policyId') policyId?: string) {
+    return { code: 0, message: 'ok', data: await this.service.listClaims(req.user, policyId) };
+  }
+
+  @Get(':id/claimable-records')
+  async claimableRecords(@Req() req: any, @Param('id') id: string) {
+    return { code: 0, message: 'ok', data: await this.service.listClaimableRecords(req.user, id) };
+  }
+
+  @Post(':id/claims')
   @AuditLog('提交理赔')
-  async claim(@Param('id') id: string) {
-    return { code: 0, message: 'ok', data: await this.service.claim(id) };
+  async submitClaim(@Req() req: any, @Param('id') id: string, @Body() dto: CreateClaimDto) {
+    return { code: 0, message: 'ok', data: await this.service.submitClaim(req.user, id, dto) };
   }
 
   @Patch(':id')

@@ -40,16 +40,33 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 | `/pets/:id` | 基本信息、就诊时间线、疫苗日历、保单列表 |
 | `/medical` | 就诊记录表格、处方侧栏、费用柱状图 |
 | `/vaccines` | 疫苗日历、待接种提醒、状态标记 |
-| `/insurance` | 保单卡片、理赔流程、保费/保障分析 |
+| `/insurance` | 保单卡片、勾选保障期内未理赔的就诊记录生成理赔单、理赔进度流程图、保费/保障分析 |
+
+## 理赔流程
+
+保险中心点击保单卡片的「提交理赔」，勾选该宠物在保障期内且尚未理赔的就诊记录，按费用合计生成一笔理赔单（`InsuranceClaim` + `ClaimItem`）。`ClaimItem.medicalRecordId` 有数据库唯一约束：同一份就诊记录重复进入其他理赔（包括两人同时提交）会被拒绝并提示「已存在理赔」，只有一笔能成立，理赔费用与保单保障额度均按原数保留。保单未生效/已过期、就诊记录与保单宠物不匹配、就诊日期超出保障期时，接口返回具体原因并停止提交。提交成功后保单卡片按钮变为「处理中」，理赔进度区展示金额与「提交 → 审核 → 赔付」进度。
+
+```bash
+# 可理赔就诊记录（保障期内未理赔的可勾选，其余返回 claimItem 标记）
+curl -H "Authorization: Bearer $TOKEN" http://localhost:38506/api/v1/insurance/<policyId>/claimable-records
+
+# 提交理赔（按所选记录费用合计生成一笔理赔单）
+curl -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"recordIds":["<medicalRecordId>"]}' \
+  http://localhost:38506/api/v1/insurance/<policyId>/claims
+
+# 理赔列表（金额与进度）
+curl -H "Authorization: Bearer $TOKEN" http://localhost:38506/api/v1/insurance/claims
+```
 
 ## 核心实体贯穿链路
-
 | 实体 | 后端链路 | 前端链路 |
 |---|---|---|
 | Pet | `prisma/schema.prisma` → `prisma.service.ts` → `pet.repository.ts` → `pet.service.ts` → `pet.controller.ts` → `pet.routes.ts` | `petApi.ts` → `usePets.ts` → `PetList.tsx` / `PetDetail.tsx` / `PetAvatar.tsx` |
 | MedicalRecord | Prisma → `medical.repository.ts` → `medical.service.ts` → `medical.controller.ts` → `medical.routes.ts` | `medicalApi.ts` → `usePets.ts` → `MedicalManagement.tsx` / `CostBarChart.tsx` |
 | VaccineRecord | Prisma → `vaccine.repository.ts` → `vaccine.service.ts` → `vaccine.controller.ts` → `vaccine.routes.ts` | `vaccineApi.ts` → `usePets.ts` → `VaccineManagement.tsx` / `VaccineCalendar.tsx` |
-| InsurancePolicy | Prisma → `insurance.repository.ts` → `insurance.service.ts` → `insurance.controller.ts` → `insurance.routes.ts` | `insuranceApi.ts` → `usePets.ts` → `InsuranceCenter.tsx` / `InsurancePieChart.tsx` |
+| InsurancePolicy | Prisma → `insurance.repository.ts` → `insurance.service.ts` → `insurance.controller.ts` → `insurance.routes.ts` | `insuranceApi.ts` → `useInsurance.ts` → `InsuranceCenter.tsx` / `PolicyCard.tsx` / `InsurancePieChart.tsx` |
+| InsuranceClaim | Prisma → `insurance.repository.ts` → `insurance.service.ts` → `insurance.controller.ts` → `insurance.routes.ts` | `insuranceApi.ts` → `useInsurance.ts` → `InsuranceCenter.tsx` / `ClaimModal.tsx` / `ClaimList.tsx` |
 
 ## 枚举定义与使用位置
 
@@ -59,7 +76,8 @@ PetCare+ 是面向宠物主人、兽医和管理员的一站式宠物健康管�
 | PetSpecies | `backend/src/constants/enums.ts`、`pet.dto.ts`、`pet.repository.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`pet.d.ts`、`PetList.tsx`、`PetAvatar.tsx`、`mockData.ts` |
 | VisitType | `backend/src/constants/enums.ts`、`medical.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`medical.d.ts`、`MedicalManagement.tsx`、`mockData.ts` |
 | VaccineStatus | `backend/src/constants/enums.ts`、`vaccine.dto.ts`、`notification.scheduler.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`vaccine.d.ts`、`VaccineManagement.tsx`、`VaccineCalendar.tsx`、`StatusBadge.tsx` |
-| InsuranceStatus | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`notification.scheduler.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`InsurancePieChart.tsx`、`StatusBadge.tsx` |
+| InsuranceStatus | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`insurance.validator.ts`、`insurance.repository.ts`、`notification.scheduler.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`PolicyCard.tsx`、`StatusBadge.tsx` |
+| ClaimStatus | `backend/src/constants/enums.ts`、`insurance.repository.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`ClaimList.tsx`、`PolicyCard.tsx`、`mockData.ts` |
 | PolicyType | `backend/src/constants/enums.ts`、`insurance.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`insurance.d.ts`、`InsuranceCenter.tsx`、`mockData.ts` |
 | Gender | `backend/src/constants/enums.ts`、`pet.dto.ts`、`schema.prisma` | `frontend/src/constants/enums.ts`、`pet.d.ts`、`PetDetail.tsx`、`mockData.ts` |
 
@@ -90,6 +108,7 @@ frontend/
 ├── src/api/
 ├── src/components/common/
 ├── src/components/charts/
+├── src/components/insurance/   # 保单卡片、理赔弹窗、理赔进度
 ├── src/constants/
 ├── src/hooks/
 ├── src/pages/

@@ -1,8 +1,15 @@
 import { request, unwrap } from '../utils/request';
-import type { InsurancePolicy } from '../types/insurance';
-import { mockInsurance } from '../utils/mockData';
+import type { ClaimableRecord, InsuranceClaim, InsurancePolicy } from '../types/insurance';
+import { mockClaimableRecords, mockClaims, mockInsurance } from '../utils/mockData';
 
 export const insuranceApi = {
   list: (params?: { petId?: string }) => unwrap<InsurancePolicy[]>(request.get('/insurance', { params }), mockInsurance),
-  claim: (id: string) => request.patch(`/insurance/${id}/claim`),
+  claims: (params?: { policyId?: string }) =>
+    unwrap<InsuranceClaim[]>(request.get('/insurance/claims', { params }), mockClaims),
+  claimableRecords: (policyId: string) =>
+    unwrap<ClaimableRecord[]>(request.get(`/insurance/${policyId}/claimable-records`), mockClaimableRecords),
+  submitClaim: async (policyId: string, recordIds: string[]) => {
+    const res = await request.post(`/insurance/${policyId}/claims`, { recordIds });
+    return res.data.data as InsuranceClaim;
+  },
 };

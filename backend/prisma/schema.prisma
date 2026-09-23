@@ -48,6 +48,12 @@ enum PolicyType {
   PREMIUM
 }
 
+enum ClaimStatus {
+  PROCESSING
+  APPROVED
+  REJECTED
+}
+
 enum Gender {
   MALE
   FEMALE
@@ -98,7 +104,7 @@ model Pet {
 }
 
 model MedicalRecord {
-  id            String    @id @default(cuid())
+  id            String      @id @default(cuid())
   petId         String
   vetId         String
   clinicId      String
@@ -110,11 +116,12 @@ model MedicalRecord {
   cost          Decimal
   nextVisitDate DateTime?
   attachments   String[]
-  pet           Pet       @relation(fields: [petId], references: [id])
-  vet           User      @relation("VetRecords", fields: [vetId], references: [id])
-  clinic        Clinic    @relation(fields: [clinicId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  pet           Pet         @relation(fields: [petId], references: [id])
+  vet           User        @relation("VetRecords", fields: [vetId], references: [id])
+  clinic        Clinic      @relation(fields: [clinicId], references: [id])
+  claimItem     ClaimItem?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model VaccineRecord {
@@ -133,7 +140,7 @@ model VaccineRecord {
 }
 
 model InsurancePolicy {
-  id        String          @id @default(cuid())
+  id        String           @id @default(cuid())
   petId     String
   provider  String
   planType  PolicyType
@@ -142,9 +149,32 @@ model InsurancePolicy {
   startDate DateTime
   endDate   DateTime
   status    InsuranceStatus
-  pet       Pet             @relation(fields: [petId], references: [id])
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  pet       Pet              @relation(fields: [petId], references: [id])
+  claims    InsuranceClaim[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model InsuranceClaim {
+  id         String          @id @default(cuid())
+  policyId   String
+  amount     Decimal
+  status     ClaimStatus     @default(PROCESSING)
+  submittedAt DateTime       @default(now())
+  policy     InsurancePolicy @relation(fields: [policyId], references: [id])
+  items      ClaimItem[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model ClaimItem {
+  id              String          @id @default(cuid())
+  claimId         String
+  medicalRecordId String          @unique
+  cost            Decimal
+  claim           InsuranceClaim  @relation(fields: [claimId], references: [id])
+  medicalRecord   MedicalRecord   @relation(fields: [medicalRecordId], references: [id])
+  createdAt       DateTime        @default(now())
 }
 
 model Notification {

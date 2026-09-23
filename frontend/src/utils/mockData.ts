@@ -1,5 +1,5 @@
-import { Gender, InsuranceStatus, PetSpecies, PolicyType, VaccineStatus, VisitType } from '../constants/enums';
-import type { InsurancePolicy } from '../types/insurance';
+import { ClaimStatus, Gender, InsuranceStatus, PetSpecies, PolicyType, VaccineStatus, VisitType } from '../constants/enums';
+import type { ClaimableRecord, InsuranceClaim, InsurancePolicy } from '../types/insurance';
 import type { MedicalRecord } from '../types/medical';
 import type { Pet } from '../types/pet';
 import type { VaccineRecord } from '../types/vaccine';
@@ -111,5 +111,29 @@ export const mockInsurance: InsurancePolicy[] = [
     endDate: '2026-07-01',
     status: InsuranceStatus.PENDING_RENEWAL,
     pet: mockPets[1],
+  },
+];
+
+export const mockClaimableRecords: ClaimableRecord[] = mockMedical
+  .filter((record) => record.petId === 'pet-demo-1')
+  .map((record) => ({ ...record, claimItem: null, clinic: { id: 'clinic-demo', name: '安心宠物医院' } }));
+
+export const mockClaims: InsuranceClaim[] = [
+  {
+    id: 'claim-demo-1',
+    policyId: 'policy-demo-1',
+    amount: 328,
+    status: ClaimStatus.PROCESSING,
+    submittedAt: '2026-06-12T09:30:00.000Z',
+    items: [
+      {
+        id: 'claim-item-demo-1',
+        claimId: 'claim-demo-1',
+        medicalRecordId: 'medical-demo-1',
+        cost: 328,
+        medicalRecord: mockMedical[0],
+      },
+    ],
+    policy: mockInsurance[0],
   },
 ];

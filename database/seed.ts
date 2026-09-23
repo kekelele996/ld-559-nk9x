@@ -50,6 +50,34 @@ async function main() {
       attachments: [],
     },
   });
+  await prisma.medicalRecord.create({
+    data: {
+      petId: pet.id,
+      vetId: vet.id,
+      clinicId: clinic.id,
+      visitDate: new Date('2026-08-20'),
+      type: VisitType.EMERGENCY,
+      diagnosis: '误食异物引发急性肠胃炎',
+      treatment: '急诊输液并留观半日',
+      prescription: '止吐针、肠胃保护剂',
+      cost: 860,
+      attachments: [],
+    },
+  });
+  await prisma.medicalRecord.create({
+    data: {
+      petId: pet.id,
+      vetId: vet.id,
+      clinicId: clinic.id,
+      visitDate: new Date('2025-11-15'),
+      type: VisitType.ROUTINE,
+      diagnosis: '投保前常规复查',
+      treatment: '无需特殊处理',
+      prescription: '',
+      cost: 150,
+      attachments: [],
+    },
+  });
   await prisma.vaccineRecord.create({
     data: {
       petId: pet.id,

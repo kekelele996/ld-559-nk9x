@@ -39,6 +39,12 @@ export enum PolicyType {
   PREMIUM = 'PREMIUM',
 }
 
+export enum ClaimStatus {
+  PROCESSING = 'PROCESSING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
